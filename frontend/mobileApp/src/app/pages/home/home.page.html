@@ -1,0 +1,124 @@
+<ion-header>
+  <ion-toolbar class="app-toolbar">
+    <ion-title>CostTrack</ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="toolbar-action" (click)="handleSessionAction()" [attr.aria-label]="isLoggedIn ? 'Sign out' : 'Sign in with Google'">
+        <ion-icon slot="icon-only" [name]="isLoggedIn ? 'exit-outline' : 'logo-google'"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="app-page">
+  <div class="page-shell home-shell">
+    <section class="hero-panel">
+      <div class="hero-copy">
+        <span class="status-pill" [class.status-pill--connected]="driveConnected" [class.status-pill--warning]="isLoggedIn && !driveConnected">
+          <ion-icon [name]="driveConnected ? 'cloud-done-outline' : 'cloud-offline-outline'"></ion-icon>
+          {{ driveConnected ? 'Drive connected' : isLoggedIn ? 'Drive needed' : 'Guest mode' }}
+        </span>
+        <h1>{{ isLoggedIn ? 'Hi, ' + userName : 'Expense Manager' }}</h1>
+        <p>{{ isLoggedIn ? userEmail : 'Sign in to sync receipts and records.' }}</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="sync-button" (click)="refreshSummary()" aria-label="Refresh summary">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </button>
+        <ion-spinner *ngIf="isLoadingSummary" name="crescent" class="hero-spinner"></ion-spinner>
+      </div>
+    </section>
+
+    <section class="summary-grid" aria-label="Record summary">
+      <div class="summary-item panel">
+        <span>Total</span>
+        <strong>{{ totalRecords }}</strong>
+      </div>
+      <div class="summary-item panel">
+        <span>Expenses</span>
+        <strong>{{ expenseCount }}</strong>
+      </div>
+      <div class="summary-item panel">
+        <span>Purchases</span>
+        <strong>{{ purchaseCount }}</strong>
+      </div>
+    </section>
+
+    <section class="account-panel panel">
+      <div>
+        <p class="eyebrow">Account</p>
+        <strong>{{ isLoggedIn ? 'Signed in' : 'Not signed in' }}</strong>
+        <span>{{ driveConnected ? 'Google Drive is ready for receipt uploads.' : isLoggedIn ? 'Connect Drive before uploading receipts.' : 'Use Google or email to start syncing.' }}</span>
+      </div>
+      <div class="account-actions">
+        <ion-button *ngIf="isLoggedIn && !driveConnected" class="compact-action" type="button" (click)="connectDrive()">
+          <ion-icon slot="start" name="link-outline"></ion-icon>
+          Connect
+        </ion-button>
+        <ion-button *ngIf="!isLoggedIn" class="compact-action" type="button" (click)="goToLogin()">
+          <ion-icon slot="start" name="log-in-outline"></ion-icon>
+          Sign in
+        </ion-button>
+      </div>
+    </section>
+
+    <section class="action-grid" aria-label="Primary actions">
+      <button type="button" class="action-card panel expense-action" (click)="goToExpense()">
+        <span class="action-icon">
+          <ion-icon name="receipt-outline"></ion-icon>
+        </span>
+        <span>
+          <strong>Expense</strong>
+          <small>Spend log</small>
+        </span>
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </button>
+
+      <button type="button" class="action-card panel purchase-action" (click)="goToPurchase()">
+        <span class="action-icon">
+          <ion-icon name="cart-outline"></ion-icon>
+        </span>
+        <span>
+          <strong>Purchase</strong>
+          <small>Paid-by tracking</small>
+        </span>
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </button>
+    </section>
+
+    <section class="panel history-panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">History</p>
+          <h2>Recent activity</h2>
+        </div>
+        <span class="sync-time">{{ lastSync }}</span>
+      </div>
+
+      <div *ngIf="historyItems.length; else emptyHistory" class="history-list">
+        <button
+          type="button"
+          class="history-row"
+          *ngFor="let item of historyItems; trackBy: trackByHistoryId"
+          (click)="openHistoryItem(item)"
+        >
+          <span class="history-icon" [class.history-icon--expense]="item.type === 'expense'" [class.history-icon--purchase]="item.type === 'purchase'">
+            <ion-icon [name]="item.type === 'expense' ? 'receipt-outline' : 'cart-outline'"></ion-icon>
+          </span>
+          <span class="history-copy">
+            <strong>{{ item.title }}</strong>
+            <small>{{ item.subtitle }}</small>
+          </span>
+          <span class="history-date">{{ item.date | date: 'MMM d' }}</span>
+        </button>
+      </div>
+
+      <ng-template #emptyHistory>
+        <div class="empty-state">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <strong>No recent history yet</strong>
+          <p>As soon as you save an expense or purchase, it shows up here.</p>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+</ion-content>

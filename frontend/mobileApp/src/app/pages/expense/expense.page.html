@@ -1,0 +1,210 @@
+<ion-header>
+  <ion-toolbar class="app-toolbar">
+    <ion-title>Expense</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="app-page">
+  <div class="page-shell form-shell">
+    <section>
+      <p class="eyebrow">Receipt log</p>
+      <h1 class="page-title">Add expense</h1>
+    </section>
+
+    <section class="drive-strip panel">
+      <span [class.is-connected]="driveConnected">
+        <ion-icon [name]="driveConnected ? 'cloud-done-outline' : 'cloud-offline-outline'"></ion-icon>
+        {{ driveConnected ? 'Drive connected' : 'Drive not connected' }}
+      </span>
+      <ion-button *ngIf="!driveConnected" class="mini-action" type="button" (click)="connectDrive()">
+        Connect
+      </ion-button>
+    </section>
+
+    <form #expenseForm="ngForm" class="panel record-form" (ngSubmit)="submitExpense(expenseForm.valid)">
+      <div class="field-stack">
+        <ion-input
+          class="app-input"
+          fill="outline"
+          label="Title"
+          labelPlacement="floating"
+          name="title"
+          required
+          [(ngModel)]="expenseData.title"
+        ></ion-input>
+
+        <ion-textarea
+          class="app-input"
+          fill="outline"
+          label="Description"
+          labelPlacement="floating"
+          name="description"
+          rows="4"
+          [(ngModel)]="expenseData.description"
+        ></ion-textarea>
+
+        <ion-input
+          class="app-input"
+          fill="outline"
+          label="Date"
+          labelPlacement="floating"
+          name="date"
+          type="date"
+          required
+          [(ngModel)]="expenseData.date"
+        ></ion-input>
+      </div>
+
+      <div class="receipt-panel">
+        <div class="receipt-preview" [class.has-image]="imagePreview">
+          <img *ngIf="imagePreview" [src]="imagePreview" alt="Expense receipt preview" />
+          <ion-icon *ngIf="!imagePreview" name="image-outline"></ion-icon>
+        </div>
+        <div class="receipt-details">
+          <strong>{{ receiptName }}</strong>
+          <span>{{ imageFile ? 'Ready to upload' : 'Receipt image' }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="isNativePlatform; else webReceiptActions" class="button-grid">
+        <ion-button class="secondary-action camera-action" expand="block" type="button" (click)="takePhoto()">
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          Camera
+        </ion-button>
+        <ion-button class="secondary-action gallery-action" expand="block" type="button" (click)="selectFromGallery()">
+          <ion-icon slot="start" name="image-outline"></ion-icon>
+          Gallery
+        </ion-button>
+      </div>
+
+      <ng-template #webReceiptActions>
+        <div class="button-grid web-file-grid">
+          <ion-button class="secondary-action camera-action" expand="block" type="button" (click)="takePhoto()">
+            <ion-icon slot="start" name="camera-outline"></ion-icon>
+            Camera
+          </ion-button>
+
+          <label class="web-file-trigger" aria-label="Choose from gallery">
+            <span class="web-file-trigger__content">
+              <ion-icon name="image-outline"></ion-icon>
+              <span>Gallery</span>
+            </span>
+            <input
+              class="web-file-trigger__input"
+              type="file"
+              accept="image/*"
+              (change)="onWebFileSelected($event)"
+            />
+          </label>
+        </div>
+      </ng-template>
+
+      <ion-modal [isOpen]="isWebCameraOpen" (didDismiss)="closeWebCamera()">
+        <ng-template>
+          <ion-header translucent="true">
+            <ion-toolbar class="app-toolbar">
+              <ion-title>Camera</ion-title>
+              <ion-buttons slot="end">
+                <ion-button type="button" (click)="closeWebCamera()">Close</ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+
+          <ion-content class="app-page">
+            <div class="web-camera-shell">
+              <div class="web-camera-frame panel">
+                <video #webCameraVideo *ngIf="!webCameraError" autoplay muted playsinline class="web-camera-video"></video>
+                <div *ngIf="isWebCameraStarting" class="web-camera-status">
+                  <ion-spinner name="crescent"></ion-spinner>
+                  <span>Opening camera...</span>
+                </div>
+                <div *ngIf="webCameraError" class="web-camera-status web-camera-status--error">
+                  <ion-icon name="warning-outline"></ion-icon>
+                  <span>{{ webCameraError }}</span>
+                </div>
+              </div>
+              <canvas #webCameraCanvas hidden></canvas>
+            </div>
+          </ion-content>
+
+          <ion-footer>
+            <ion-toolbar class="app-toolbar">
+              <div class="web-camera-actions">
+                <ion-button fill="clear" color="medium" type="button" (click)="closeWebCamera()">
+                  Cancel
+                </ion-button>
+                <ion-button type="button" [disabled]="isWebCameraStarting || !!webCameraError" (click)="captureWebCameraFrame()">
+                  Capture
+                </ion-button>
+              </div>
+            </ion-toolbar>
+          </ion-footer>
+        </ng-template>
+      </ion-modal>
+
+      <ion-button
+        *ngIf="imageFile"
+        class="secondary-action"
+        fill="clear"
+        color="medium"
+        expand="block"
+        type="button"
+        (click)="clearReceipt()"
+      >
+        Clear receipt
+      </ion-button>
+
+      <ion-button class="primary-action" expand="block" type="submit" [disabled]="isSubmitting">
+        <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+        Save expense
+      </ion-button>
+    </form>
+
+    <section>
+      <div class="section-title">
+        <h2>Recent expenses</h2>
+        <ion-spinner *ngIf="isLoadingRecords" name="crescent"></ion-spinner>
+      </div>
+
+      <div *ngIf="records.length; else noExpenses" class="record-list">
+        <div class="panel record-row" *ngFor="let record of records; trackBy: trackByRecordId">
+          <span class="record-icon">
+            <ion-icon name="receipt-outline"></ion-icon>
+          </span>
+          <div>
+            <h3>{{ record.title }}</h3>
+            <p>{{ record.date | date: 'mediumDate' }}{{ record.description ? ' - ' + record.description : '' }}</p>
+          </div>
+          <div class="record-actions">
+            <button
+              *ngIf="record.imageUrl"
+              type="button"
+              class="icon-action"
+              (click)="openReceipt(record)"
+              aria-label="Open receipt"
+            >
+              <ion-icon name="open-outline"></ion-icon>
+            </button>
+            <button
+              type="button"
+              class="icon-action danger-action"
+              [disabled]="deletingId === record._id"
+              (click)="confirmDelete(record)"
+              aria-label="Delete expense"
+            >
+              <ion-spinner *ngIf="deletingId === record._id" name="crescent"></ion-spinner>
+              <ion-icon *ngIf="deletingId !== record._id" name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noExpenses>
+        <div class="panel empty-state">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <strong>No expenses yet</strong>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+</ion-content>

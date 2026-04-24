@@ -1,0 +1,99 @@
+# ===========================
+# Node / npm
+# ===========================
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-error.log
+yarn-debug.log*
+
+# ===========================
+# Environment / Secrets
+# ===========================
+.env
+.env.local
+.env.*.local
+
+# ===========================
+# Build outputs
+# ===========================
+/dist
+/out-tsc
+/bazel-out
+/www
+**/www/
+**/dist/
+**/build/
+**/.gradle/
+**/android/.gradle/
+**/android/app/build/
+/tmp
+/.sourcemaps
+
+# ===========================
+# Angular / Ionic
+# ===========================
+/.ionic
+/.angular
+/.angular/cache
+/.nx
+/.nx/cache
+/platforms
+/plugins
+/coverage
+
+# ===========================
+# IDEs & Editors
+# ===========================
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-project
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# ===========================
+# OS files
+# ===========================
+.DS_Store
+Thumbs.db
+$RECYCLE.BIN/
+*~
+
+# ===========================
+# Logs & Temps
+# ===========================
+*.log
+*.out
+*.err
+*.tmp
+*.tmp.*
+*.sw[mnpcod]
+.tmp
+log.txt
+libpeerconnection.log
+testem.log
+
+# ===========================
+# Misc
+# ===========================
+.sass-cache/
+UserInterfaceState.xcuserstate
+
+# ===========================
+# Backend – unwanted test files
+# ===========================
+backend/check.jpeg
+*.apk
+emulator-*.png
+backend/uploads/
+backend/server.out.log
+backend/server.err.log

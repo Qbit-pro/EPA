@@ -1,0 +1,21 @@
+<ion-app>
+  <div
+    *ngIf="showSplash"
+    class="splash-screen"
+    [class.splash-screen--leaving]="splashLeaving"
+    aria-hidden="true"
+  >
+    <div class="splash-mark">
+      <img src="assets/branding/bee-logo.png" alt="Expense Manager logo" />
+    </div>
+    <h1>Expense Manager</h1>
+    <p>Receipts, purchases, and spending records.</p>
+    <div class="splash-loader">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </div>
+
+  <ion-router-outlet></ion-router-outlet>
+</ion-app>

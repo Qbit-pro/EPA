@@ -1,0 +1,35 @@
+ion-segment {
+  --background: var(--app-soft);
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+ion-segment-button {
+  --border-radius: 6px;
+  --indicator-color: #ffffff;
+  --color: var(--app-muted);
+  --color-checked: var(--app-text);
+  min-height: 42px;
+  font-weight: 740;
+  text-transform: none;
+}
+
+.camera-action {
+  --background: var(--app-primary);
+  --background-hover: #185ec4;
+  --background-activated: #154f9f;
+  --border-width: 0;
+  --color: #ffffff;
+}
+
+.gallery-action {
+  --background: #ffffff;
+  --background-hover: var(--app-soft);
+  --background-activated: var(--app-soft-strong);
+  --color: var(--app-text);
+}
+
+.purchase-icon {
+  background: var(--app-teal);
+}
