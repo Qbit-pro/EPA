@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
 
-const { signup, login, me, googleAuth, googleCallback } = require("../controllers/authController");
+const { signup, login, logout, me, googleAuth, googleCallback } = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 
-// existing routes
+
 router.post("/signup", signup);
 router.post("/login", login);
+router.post("/logout", authMiddleware, logout);
 router.get("/me", authMiddleware, me);
 
 

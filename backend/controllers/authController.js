@@ -3,13 +3,15 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { google } = require("googleapis");
+const RevokedToken = require("../models/RevokedToken");
+const { isGlobalDriveConfigured } = require("../services/googleDriveService");
 
 function publicUser(user) {
   return {
     _id: user._id,
     username: user.username,
     email: user.email,
-    googleDriveConnected: Boolean(user.googleDriveConnected && user.googleRefreshToken)
+    googleDriveConnected: isGlobalDriveConfigured()
   };
 }
 
@@ -243,6 +245,35 @@ exports.me = async (req, res) => {
   }
 };
 
+exports.logout = async (req, res) => {
+  try {
+    if (!req.token) {
+      return res.status(400).json({ message: "No active token found" });
+    }
+
+    const expiresAt = req.user?.exp
+      ? new Date(req.user.exp * 1000)
+      : new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await RevokedToken.findOneAndUpdate(
+      { token: req.token },
+      {
+        token: req.token,
+        expiresAt
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true
+      }
+    );
+
+    res.json({ message: "Logged out successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.googleAuth = (req, res) => {
   const token = req.query.token;
   const redirect = normalizeRedirectUrl(req.query.redirect);
@@ -261,27 +292,14 @@ exports.googleAuth = (req, res) => {
   };
 
   if (token) {
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      state = {
-        mode: "connect",
-        redirect,
-        userId: decoded.id,
-      };
-    } catch {
-      return res.status(401).send("Invalid app session");
-    }
+    return res.status(403).send("Shared Google Drive is managed globally and cannot be linked per user.");
   }
-
-  const scopes = state.mode === "connect"
-    ? [...baseScopes, "https://www.googleapis.com/auth/drive.file"]
-    : baseScopes;
 
   const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
-    prompt: "consent",
+    prompt: "consent select_account",
     state: encodeState(state),
-    scope: scopes,
+    scope: baseScopes,
   });
 
   res.redirect(url);
@@ -309,24 +327,8 @@ exports.googleCallback = async (req, res) => {
 
     let user;
 
-    if (decodedState.mode === "connect" && decodedState.userId) {
-      user = await User.findById(decodedState.userId);
-
-      if (!user) {
-        return res.status(404).send("User not found");
-      }
-
-      if (tokens.access_token) {
-        user.googleAccessToken = tokens.access_token;
-      }
-
-      if (tokens.refresh_token) {
-        user.googleRefreshToken = tokens.refresh_token;
-      }
-
-      user.googleDriveConnected = Boolean(user.googleRefreshToken);
-
-      await user.save();
+    if (decodedState.mode === "connect") {
+      return res.status(403).send("Shared Google Drive is managed globally and cannot be linked per user.");
     } else {
       user = await findOrCreateGoogleUser(googleProfile.data);
     }
@@ -340,7 +342,7 @@ exports.googleCallback = async (req, res) => {
     if (redirect) {
       const query = new URLSearchParams({
         source: "google",
-        mode: decodedState.mode === "connect" ? "connect" : "signin",
+        mode: "signin",
         token: signToken(user),
         user: JSON.stringify(publicUser(user)),
       });

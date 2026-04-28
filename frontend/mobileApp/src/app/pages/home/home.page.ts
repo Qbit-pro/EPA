@@ -98,21 +98,7 @@ export class HomePage {
   }
 
   handleSessionAction(): void {
-    if (this.isLoggedIn) {
-      this.logout();
-      return;
-    }
-
-    void this.startGoogleSignIn();
-  }
-
-  connectDrive(): void {
-    if (!this.isLoggedIn) {
-      void this.router.navigate(['/login']);
-      return;
-    }
-
-    void this.session.startGoogleAuth('connect');
+    void this.logout();
   }
 
   openHistoryItem(item: HistoryItem): void {
@@ -124,14 +110,14 @@ export class HomePage {
     void this.router.navigate(['/purchase']);
   }
 
-  logout(): void {
-    this.session.clear();
+  async logout(): Promise<void> {
+    await this.session.logout();
     this.refreshSession();
     this.expenseCount = 0;
     this.purchaseCount = 0;
     this.lastSync = 'Signed out';
     this.historyItems = [];
-    void this.presentToast('Signed out successfully.', 'medium');
+    await this.presentToast('Signed out successfully.', 'medium');
   }
 
   refreshSummary(): void {
@@ -154,14 +140,11 @@ export class HomePage {
     this.driveConnected = Boolean(user?.googleDriveConnected);
   }
 
-  private async startGoogleSignIn(): Promise<void> {
-    await this.session.startGoogleAuth('signin');
-  }
-
   private loadSummary(): void {
     const token = this.session.getToken();
 
     if (!token) {
+      void this.router.navigate(['/login'], { replaceUrl: true });
       return;
     }
 

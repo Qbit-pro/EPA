@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { ToastController } from '@ionic/angular';
+import { catchError, firstValueFrom, of } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ApiService, AuthResponse, UserProfile } from './api.service';
 
@@ -62,6 +63,28 @@ export class AuthSessionService {
   clear(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
+  }
+
+  async logout(): Promise<void> {
+    await this.endSession(true);
+  }
+
+  async endSession(navigateToLogin = false): Promise<void> {
+    const token = this.getToken();
+
+    if (token) {
+      await firstValueFrom(
+        this.api.logout(token).pipe(
+          catchError(() => of(null))
+        )
+      );
+    }
+
+    this.clear();
+
+    if (navigateToLogin) {
+      await this.router.navigate(['/login'], { replaceUrl: true });
+    }
   }
 
   async startGoogleAuth(mode: OAuthMode): Promise<void> {

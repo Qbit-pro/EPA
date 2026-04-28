@@ -1,13 +1,16 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
+import { guestGuard } from './guards/guest.guard';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'tabs/home',
+    redirectTo: 'login',
     pathMatch: 'full'
   },
   {
     path: 'tabs',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./tabs/tabs.page').then(m => m.TabsPage),
     children: [
@@ -30,13 +33,14 @@ export const routes: Routes = [
         path: 'purchase',
         loadComponent: () =>
           import('./pages/purchase/purchase.page').then(m => m.PurchasePage)
-      },
-      {
-        path: 'login',
-        loadComponent: () =>
-          import('./pages/login/login.page').then(m => m.LoginPage)
       }
     ]
+  },
+  {
+    path: 'login',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./pages/login/login.page').then(m => m.LoginPage)
   },
   {
     path: 'home',
@@ -54,12 +58,7 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: 'login',
-    redirectTo: '/tabs/login',
-    pathMatch: 'full'
-  },
-  {
     path: '**',
-    redirectTo: '/tabs/home'
+    redirectTo: '/login'
   }
 ];

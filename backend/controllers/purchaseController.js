@@ -1,12 +1,10 @@
-const { google } = require("googleapis");
 const stream = require("stream");
 const path = require("path");
 const crypto = require("crypto");
 const fs = require("fs/promises");
 const Expense = require("../models/Expense");
 const Purchase = require("../models/Purchase");
-const User = require("../models/User");
-const { createFolder } = require("../services/googleDriveService");
+const { buildGlobalDriveClient, createFolder, isGlobalDriveConfigured } = require("../services/googleDriveService");
 
 const validPaidBy = new Set(["company", "self"]);
 
@@ -61,10 +59,6 @@ function fileFromBase64Body(body) {
   };
 }
 
-function hasDriveAccess(user) {
-  return Boolean(user?.googleDriveConnected && user?.googleRefreshToken);
-}
-
 function buildUploadUrl(req, relativePath) {
   const protocol = req.protocol || "http";
   const host = req.get("host");
@@ -93,22 +87,8 @@ async function uploadReceiptToLocal(req, file, type, recordDate, paidBy, title) 
   };
 }
 
-async function uploadReceiptToDrive(file, type, paidBy, title, recordDate, user) {
-  const oauth2Client = new google.auth.OAuth2(
-    process.env.CLIENT_ID,
-    process.env.CLIENT_SECRET,
-    process.env.REDIRECT_URI
-  );
-  oauth2Client.setCredentials({
-    access_token: user.googleAccessToken || undefined,
-    refresh_token: user.googleRefreshToken
-  });
-
-  const drive = google.drive({
-    version: "v3",
-    auth: oauth2Client
-  });
-
+async function uploadReceiptToDrive(file, type, paidBy, title, recordDate) {
+  const drive = buildGlobalDriveClient();
   const year = recordDate.getFullYear().toString();
   const month = recordDate.toLocaleString("en-US", { month: "long" });
   const appFolder = await createFolder(drive, "ExpenseApp", null);
@@ -187,26 +167,9 @@ exports.getPurchases = async (req,res) => {
 };
 
 exports.deletePurchase = async (req, res) => {
-    try {
-        const purchase = await Purchase.findOneAndDelete({
-            _id: req.params.id,
-            userId: req.user.id
-        });
-
-        if (!purchase) {
-            return res.status(404).json({
-                message: "Purchase not found"
-            });
-        }
-
-        res.json({
-            message: "Purchase deleted"
-        });
-    } catch(error) {
-        res.status(500).json({
-            error: error.message
-        });
-    }
+    res.status(403).json({
+        message: "Deleting purchases is disabled"
+    });
 };
 
 exports.uploadToDrive = async (req, res) => {
@@ -231,23 +194,17 @@ exports.uploadToDrive = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const recordDate = new Date(date);
 
     if (Number.isNaN(recordDate.getTime())) {
       return res.status(400).json({ message: "Invalid date" });
     }
     let uploaded;
-    const driveConnected = hasDriveAccess(user);
+    const driveConnected = isGlobalDriveConfigured();
 
     if (driveConnected) {
       try {
-        uploaded = await uploadReceiptToDrive(uploadFile, type, paidBy, title, recordDate, user);
+        uploaded = await uploadReceiptToDrive(uploadFile, type, paidBy, title, recordDate);
       } catch (driveError) {
         console.error("Google Drive upload failed:", driveError?.response?.data || driveError?.message || driveError);
         uploaded = await uploadReceiptToLocal(req, uploadFile, type, recordDate, paidBy, title);

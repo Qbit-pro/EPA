@@ -6,7 +6,6 @@ import { Browser } from '@capacitor/browser';
 import {
   Camera,
   CameraDirection,
-  CameraPermissionType,
   CameraResultType,
   CameraSource,
   Photo
@@ -17,6 +16,7 @@ import {
   IonButton,
   IonButtons,
   IonContent,
+  IonDatetime,
   IonFooter,
   IonHeader,
   IonIcon,
@@ -47,6 +47,7 @@ type ToastColor = 'danger' | 'medium' | 'success' | 'warning';
     IonButton,
     IonButtons,
     IonContent,
+    IonDatetime,
     IonFooter,
     IonHeader,
     IonIcon,
@@ -62,6 +63,7 @@ type ToastColor = 'danger' | 'medium' | 'success' | 'warning';
 export class ExpensePage implements OnDestroy {
   @ViewChild('webCameraVideo') private webCameraVideo?: ElementRef<HTMLVideoElement>;
   @ViewChild('webCameraCanvas') private webCameraCanvas?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('receiptFileInput') private receiptFileInput?: ElementRef<HTMLInputElement>;
 
   private readonly api = inject(ApiService);
   private readonly session = inject(AuthSessionService);
@@ -84,14 +86,29 @@ export class ExpensePage implements OnDestroy {
   readonly isNativePlatform = Capacitor.isNativePlatform();
   driveConnected = false;
   deletingId = '';
+  isDatePickerOpen = false;
   isWebCameraOpen = false;
   isWebCameraStarting = false;
   webCameraError = '';
   private previewObjectUrl = '';
   private webCameraStream: MediaStream | null = null;
+  private readonly dateFormatter = new Intl.DateTimeFormat(undefined, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
 
   get receiptName(): string {
     return this.imageFile?.name || 'No receipt selected';
+  }
+
+  get hasImagePreview(): boolean {
+    return Boolean(this.imagePreview);
+  }
+
+  get formattedSelectedDate(): string {
+    return this.formatDisplayDate(this.expenseData.date);
   }
 
   ngOnDestroy(): void {
@@ -109,11 +126,19 @@ export class ExpensePage implements OnDestroy {
       return;
     }
 
-    await this.captureReceipt('camera');
+    await this.captureReceipt();
   }
 
-  async selectFromGallery(): Promise<void> {
-    await this.captureReceipt('photos');
+  openFilePicker(): void {
+    this.receiptFileInput?.nativeElement.click();
+  }
+
+  openDatePicker(): void {
+    this.isDatePickerOpen = true;
+  }
+
+  closeDatePicker(): void {
+    this.isDatePickerOpen = false;
   }
 
   clearReceipt(): void {
@@ -123,7 +148,7 @@ export class ExpensePage implements OnDestroy {
   }
 
   async submitExpense(isValid: boolean | null): Promise<void> {
-    if (!isValid) {
+    if (!isValid || !this.expenseData.date) {
       await this.presentToast('Title and date are required.', 'warning');
       return;
     }
@@ -169,16 +194,6 @@ export class ExpensePage implements OnDestroy {
     return record._id;
   }
 
-  async connectDrive(): Promise<void> {
-    const token = await this.requireToken();
-
-    if (!token) {
-      return;
-    }
-
-    await this.session.startGoogleAuth('connect');
-  }
-
   async openReceipt(record: ExpenseRecord): Promise<void> {
     if (!record.imageUrl) {
       return;
@@ -187,27 +202,7 @@ export class ExpensePage implements OnDestroy {
     await Browser.open({ url: record.imageUrl });
   }
 
-  async confirmDelete(record: ExpenseRecord): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Delete expense?',
-      message: record.title,
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel'
-        },
-        {
-          text: 'Delete',
-          role: 'destructive',
-          handler: () => this.deleteRecord(record._id)
-        }
-      ]
-    });
-
-    await alert.present();
-  }
-
-  async onWebFileSelected(event: Event): Promise<void> {
+  async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement | null;
     const file = input?.files?.[0];
 
@@ -217,9 +212,27 @@ export class ExpensePage implements OnDestroy {
 
     this.releasePreviewUrl();
     this.imageFile = file;
-    this.previewObjectUrl = URL.createObjectURL(file);
-    this.imagePreview = this.previewObjectUrl;
+
+    if (file.type.startsWith('image/')) {
+      this.previewObjectUrl = URL.createObjectURL(file);
+      this.imagePreview = this.previewObjectUrl;
+    } else {
+      this.imagePreview = '';
+    }
+
     input.value = '';
+  }
+
+  onDateSelected(event: CustomEvent<{ value?: string | string[] | null }>): void {
+    const nextValue = Array.isArray(event.detail.value)
+      ? event.detail.value[0]
+      : event.detail.value;
+
+    const normalized = this.normalizeDate(nextValue);
+
+    if (normalized) {
+      this.expenseData.date = normalized;
+    }
   }
 
   async captureWebCameraFrame(): Promise<void> {
@@ -268,20 +281,17 @@ export class ExpensePage implements OnDestroy {
     this.webCameraError = '';
   }
 
-  private async captureReceipt(permissionType: CameraPermissionType): Promise<void> {
+  private async captureReceipt(): Promise<void> {
     try {
-      const hasPermission = await this.ensureReceiptPermission(permissionType);
+      const hasPermission = await this.ensureReceiptPermission();
 
       if (!hasPermission) {
-        await this.presentToast(
-          permissionType === 'camera' ? 'Camera permission is required.' : 'Gallery permission is required.',
-          'warning'
-        );
+        await this.presentToast('Camera permission is required.', 'warning');
         return;
       }
 
       const image = await Camera.getPhoto({
-        source: permissionType === 'camera' ? CameraSource.Camera : CameraSource.Photos,
+        source: CameraSource.Camera,
         resultType: CameraResultType.Base64,
         quality: 92,
         correctOrientation: true,
@@ -296,10 +306,7 @@ export class ExpensePage implements OnDestroy {
       await this.setReceiptImage(image);
     } catch (error) {
       if (!this.isCameraCancel(error)) {
-        await this.presentToast(
-          permissionType === 'camera' ? 'Could not open the camera.' : 'Could not open the gallery.',
-          'danger'
-        );
+        await this.presentToast('Could not open the camera.', 'danger');
       }
     }
   }
@@ -398,52 +405,48 @@ export class ExpensePage implements OnDestroy {
     });
   }
 
-  private deleteRecord(id: string): void {
-    const token = this.session.getToken();
-
-    if (!token) {
-      void this.requireToken();
-      return;
-    }
-
-    this.deletingId = id;
-
-    this.api.deleteExpense(id, token).pipe(
-      finalize(() => {
-        this.deletingId = '';
-      })
-    ).subscribe({
-      next: () => {
-        this.records = this.records.filter(record => record._id !== id);
-        void this.presentToast('Expense deleted.', 'success');
-      },
-      error: error => {
-        const message = error?.error?.message || error?.error?.error || 'Could not delete expense.';
-        void this.presentToast(message, 'danger');
-      }
-    });
-  }
-
   private today(): string {
     return new Date().toISOString().slice(0, 10);
   }
 
-  private async ensureReceiptPermission(source: CameraPermissionType): Promise<boolean> {
+  private normalizeDate(value: string | null | undefined): string {
+    if (!value) {
+      return '';
+    }
+
+    return value.slice(0, 10);
+  }
+
+  private formatDisplayDate(value: string): string {
+    if (!value) {
+      return 'Select a date';
+    }
+
+    const parsed = new Date(`${value}T00:00:00`);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return 'Select a date';
+    }
+
+    return this.dateFormatter.format(parsed);
+  }
+
+  private async ensureReceiptPermission(): Promise<boolean> {
     if (!this.isNativePlatform) {
       return true;
     }
 
     const currentPermissions = await Camera.checkPermissions();
-    const currentState = currentPermissions[source];
+    const currentState = currentPermissions.camera;
 
     if (currentState === 'granted' || currentState === 'limited') {
       return true;
     }
 
     const updatedPermissions = await Camera.requestPermissions({
-      permissions: [source]
+      permissions: ['camera']
     });
-    const updatedState = updatedPermissions[source];
+    const updatedState = updatedPermissions.camera;
 
     return updatedState === 'granted' || updatedState === 'limited';
   }

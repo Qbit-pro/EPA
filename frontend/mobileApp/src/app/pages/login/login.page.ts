@@ -9,9 +9,6 @@ import {
   IonHeader,
   IonIcon,
   IonInput,
-  IonLabel,
-  IonSegment,
-  IonSegmentButton,
   IonTitle,
   IonToolbar
 } from '@ionic/angular/standalone';
@@ -19,7 +16,6 @@ import { finalize } from 'rxjs';
 import { ApiService, AuthPayload } from 'src/app/services/api.service';
 import { AuthSessionService } from 'src/app/services/auth-session.service';
 
-type AuthMode = 'login' | 'signup';
 type ToastColor = 'danger' | 'medium' | 'success' | 'warning';
 
 @Component({
@@ -38,9 +34,6 @@ type ToastColor = 'danger' | 'medium' | 'success' | 'warning';
     IonHeader,
     IonIcon,
     IonInput,
-    IonLabel,
-    IonSegment,
-    IonSegmentButton,
     IonTitle,
     IonToolbar,
     RouterModule
@@ -55,18 +48,20 @@ export class LoginPage implements OnInit {
   private readonly loadingController = inject(LoadingController);
   private readonly toastController = inject(ToastController);
 
-  mode: AuthMode = 'login';
   isSubmitting = false;
   currentServerUrl = '';
 
   authData = {
-    username: '',
     email: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   };
 
   ngOnInit(): void {
+    if (this.session.isLoggedIn()) {
+      void this.router.navigate(['/tabs/home'], { replaceUrl: true });
+      return;
+    }
+
     this.syncCurrentServerUrl();
 
     this.route.queryParamMap.subscribe(params => {
@@ -83,20 +78,9 @@ export class LoginPage implements OnInit {
     });
   }
 
-  setMode(value: string | undefined): void {
-    if (value === 'login' || value === 'signup') {
-      this.mode = value;
-    }
-  }
-
   async submitAuth(isValid: boolean | null): Promise<void> {
     if (!isValid) {
       await this.presentToast('Fill the required details first.', 'warning');
-      return;
-    }
-
-    if (this.mode === 'signup' && this.authData.password !== this.authData.confirmPassword) {
-      await this.presentToast('Passwords do not match.', 'warning');
       return;
     }
 
@@ -105,19 +89,15 @@ export class LoginPage implements OnInit {
       password: this.authData.password
     };
 
-    if (this.mode === 'signup') {
-      payload.username = this.authData.username.trim();
-    }
-
     const loading = await this.loadingController.create({
-      message: this.mode === 'login' ? 'Signing in...' : 'Creating account...',
+      message: 'Signing in...',
       spinner: 'crescent'
     });
 
     this.isSubmitting = true;
     await loading.present();
 
-    const request = this.mode === 'login' ? this.api.login(payload) : this.api.signup(payload);
+    const request = this.api.login(payload);
 
     request.pipe(
       finalize(() => {
@@ -127,11 +107,8 @@ export class LoginPage implements OnInit {
     ).subscribe({
       next: response => {
         this.session.persist(response);
-        void this.presentToast(
-          this.mode === 'login' ? 'Welcome back.' : 'Account created.',
-          'success'
-        );
-        void this.router.navigate(['/']);
+        void this.presentToast('Welcome back.', 'success');
+        void this.router.navigate(['/tabs/home'], { replaceUrl: true });
       },
       error: error => {
         const message = error?.error?.message || error?.error?.error || 'Authentication failed.';
@@ -201,7 +178,7 @@ export class LoginPage implements OnInit {
         result.mode === 'connect' ? 'Google Drive connected.' : 'Signed in with Google.',
         'success'
       );
-      void this.router.navigate(['/'], { replaceUrl: true });
+      void this.router.navigate(['/tabs/home'], { replaceUrl: true });
       return;
     }
 

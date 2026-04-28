@@ -2,8 +2,8 @@
   <ion-toolbar class="app-toolbar">
     <ion-title>CostTrack</ion-title>
     <ion-buttons slot="end">
-      <ion-button class="toolbar-action" (click)="handleSessionAction()" [attr.aria-label]="isLoggedIn ? 'Sign out' : 'Sign in with Google'">
-        <ion-icon slot="icon-only" [name]="isLoggedIn ? 'exit-outline' : 'logo-google'"></ion-icon>
+      <ion-button class="toolbar-action" (click)="handleSessionAction()" aria-label="Sign out">
+        <ion-icon slot="icon-only" name="exit-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -45,19 +45,9 @@
 
     <section class="account-panel panel">
       <div>
-        <p class="eyebrow">Account</p>
-        <strong>{{ isLoggedIn ? 'Signed in' : 'Not signed in' }}</strong>
-        <span>{{ driveConnected ? 'Google Drive is ready for receipt uploads.' : isLoggedIn ? 'Connect Drive before uploading receipts.' : 'Use Google or email to start syncing.' }}</span>
-      </div>
-      <div class="account-actions">
-        <ion-button *ngIf="isLoggedIn && !driveConnected" class="compact-action" type="button" (click)="connectDrive()">
-          <ion-icon slot="start" name="link-outline"></ion-icon>
-          Connect
-        </ion-button>
-        <ion-button *ngIf="!isLoggedIn" class="compact-action" type="button" (click)="goToLogin()">
-          <ion-icon slot="start" name="log-in-outline"></ion-icon>
-          Sign in
-        </ion-button>
+        <p class="eyebrow">Storage</p>
+        <strong>{{ driveConnected ? 'Shared Drive linked' : 'Shared Drive unavailable' }}</strong>
+        <span>{{ driveConnected ? 'Receipts upload to the shared Google Drive account.' : 'Receipts will stay on local storage until the shared Drive account is configured.' }}</span>
       </div>
     </section>
 

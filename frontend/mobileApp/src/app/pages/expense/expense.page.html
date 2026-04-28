@@ -14,11 +14,8 @@
     <section class="drive-strip panel">
       <span [class.is-connected]="driveConnected">
         <ion-icon [name]="driveConnected ? 'cloud-done-outline' : 'cloud-offline-outline'"></ion-icon>
-        {{ driveConnected ? 'Drive connected' : 'Drive not connected' }}
+        {{ driveConnected ? 'Shared Drive linked' : 'Shared Drive unavailable' }}
       </span>
-      <ion-button *ngIf="!driveConnected" class="mini-action" type="button" (click)="connectDrive()">
-        Connect
-      </ion-button>
     </section>
 
     <form #expenseForm="ngForm" class="panel record-form" (ngSubmit)="submitExpense(expenseForm.valid)">
@@ -42,62 +39,82 @@
           rows="4"
           [(ngModel)]="expenseData.description"
         ></ion-textarea>
+      </div>
 
-        <ion-input
-          class="app-input"
-          fill="outline"
-          label="Date"
-          labelPlacement="floating"
-          name="date"
-          type="date"
-          required
-          [(ngModel)]="expenseData.date"
-        ></ion-input>
+      <div class="date-card panel">
+        <button type="button" class="date-card__button" (click)="openDatePicker()" aria-label="Choose expense date">
+          <span class="date-card__icon">
+            <ion-icon name="calendar-outline"></ion-icon>
+          </span>
+          <span class="date-card__copy">
+            <small>Expense date</small>
+            <strong>{{ formattedSelectedDate }}</strong>
+            <em>Tap to open the calendar</em>
+          </span>
+          <ion-icon class="date-card__chevron" name="chevron-forward-outline"></ion-icon>
+        </button>
       </div>
 
       <div class="receipt-panel">
-        <div class="receipt-preview" [class.has-image]="imagePreview">
-          <img *ngIf="imagePreview" [src]="imagePreview" alt="Expense receipt preview" />
-          <ion-icon *ngIf="!imagePreview" name="image-outline"></ion-icon>
+        <div class="receipt-preview" [class.has-image]="hasImagePreview">
+          <img *ngIf="hasImagePreview" [src]="imagePreview" alt="Expense receipt preview" />
+          <ion-icon *ngIf="!hasImagePreview" name="document-text-outline"></ion-icon>
         </div>
         <div class="receipt-details">
           <strong>{{ receiptName }}</strong>
-          <span>{{ imageFile ? 'Ready to upload' : 'Receipt image' }}</span>
+          <span>{{ imageFile ? 'Ready to upload' : 'Receipt file' }}</span>
         </div>
       </div>
 
-      <div *ngIf="isNativePlatform; else webReceiptActions" class="button-grid">
+      <div class="button-grid web-file-grid">
         <ion-button class="secondary-action camera-action" expand="block" type="button" (click)="takePhoto()">
           <ion-icon slot="start" name="camera-outline"></ion-icon>
           Camera
         </ion-button>
-        <ion-button class="secondary-action gallery-action" expand="block" type="button" (click)="selectFromGallery()">
-          <ion-icon slot="start" name="image-outline"></ion-icon>
-          Gallery
+        <ion-button class="secondary-action gallery-action" expand="block" type="button" (click)="openFilePicker()">
+          <ion-icon slot="start" name="document-text-outline"></ion-icon>
+          Files
         </ion-button>
       </div>
+      <input
+        #receiptFileInput
+        class="hidden-file-input"
+        type="file"
+        (change)="onFileSelected($event)"
+      />
 
-      <ng-template #webReceiptActions>
-        <div class="button-grid web-file-grid">
-          <ion-button class="secondary-action camera-action" expand="block" type="button" (click)="takePhoto()">
-            <ion-icon slot="start" name="camera-outline"></ion-icon>
-            Camera
-          </ion-button>
+      <ion-modal [isOpen]="isDatePickerOpen" (didDismiss)="closeDatePicker()">
+        <ng-template>
+          <ion-header translucent="true">
+            <ion-toolbar class="app-toolbar">
+              <ion-title>Choose a date</ion-title>
+              <ion-buttons slot="end">
+                <ion-button type="button" (click)="closeDatePicker()">Done</ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
 
-          <label class="web-file-trigger" aria-label="Choose from gallery">
-            <span class="web-file-trigger__content">
-              <ion-icon name="image-outline"></ion-icon>
-              <span>Gallery</span>
-            </span>
-            <input
-              class="web-file-trigger__input"
-              type="file"
-              accept="image/*"
-              (change)="onWebFileSelected($event)"
-            />
-          </label>
-        </div>
-      </ng-template>
+          <ion-content class="app-page calendar-modal-content">
+            <div class="calendar-modal-shell">
+              <section class="calendar-hero">
+                <p class="eyebrow">Selected day</p>
+                <h2>{{ formattedSelectedDate }}</h2>
+              </section>
+
+              <section class="calendar-panel panel">
+                <ion-datetime
+                  class="calendar-picker"
+                  presentation="date"
+                  preferWheel="false"
+                  firstDayOfWeek="1"
+                  [value]="expenseData.date"
+                  (ionChange)="onDateSelected($event)"
+                ></ion-datetime>
+              </section>
+            </div>
+          </ion-content>
+        </ng-template>
+      </ion-modal>
 
       <ion-modal [isOpen]="isWebCameraOpen" (didDismiss)="closeWebCamera()">
         <ng-template>
@@ -184,16 +201,6 @@
               aria-label="Open receipt"
             >
               <ion-icon name="open-outline"></ion-icon>
-            </button>
-            <button
-              type="button"
-              class="icon-action danger-action"
-              [disabled]="deletingId === record._id"
-              (click)="confirmDelete(record)"
-              aria-label="Delete expense"
-            >
-              <ion-spinner *ngIf="deletingId === record._id" name="crescent"></ion-spinner>
-              <ion-icon *ngIf="deletingId !== record._id" name="trash-outline"></ion-icon>
             </button>
           </div>
         </div>

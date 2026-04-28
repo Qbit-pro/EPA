@@ -1,10 +1,10 @@
 :root {
-  --ion-color-primary: #2563eb;
-  --ion-color-primary-rgb: 37, 99, 235;
+  --ion-color-primary: #1d4ed8;
+  --ion-color-primary-rgb: 29, 78, 216;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #2057cf;
-  --ion-color-primary-tint: #3b73ed;
+  --ion-color-primary-shade: #1944be;
+  --ion-color-primary-tint: #3560dc;
 
   --ion-color-secondary: #0f766e;
   --ion-color-secondary-rgb: 15, 118, 110;
@@ -13,12 +13,12 @@
   --ion-color-secondary-shade: #0d6861;
   --ion-color-secondary-tint: #27847d;
 
-  --ion-color-tertiary: #f59e0b;
-  --ion-color-tertiary-rgb: 245, 158, 11;
+  --ion-color-tertiary: #d97706;
+  --ion-color-tertiary-rgb: 217, 119, 6;
   --ion-color-tertiary-contrast: #111827;
   --ion-color-tertiary-contrast-rgb: 17, 24, 39;
-  --ion-color-tertiary-shade: #d88b0a;
-  --ion-color-tertiary-tint: #f6a823;
+  --ion-color-tertiary-shade: #bf6905;
+  --ion-color-tertiary-tint: #dd851f;
 
   --ion-color-success: #16a34a;
   --ion-color-warning: #f59e0b;
@@ -28,15 +28,17 @@
   --ion-color-light: #f8fafc;
 
   --ion-font-family: "Manrope", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --app-bg: #f5f7fb;
-  --app-surface: #ffffff;
-  --app-soft: #f8fafc;
-  --app-soft-strong: #edf2f7;
-  --app-border: #dfe5ee;
-  --app-text: #111827;
-  --app-muted: #667085;
-  --app-primary: #2563eb;
+  --app-bg: #edf3fb;
+  --app-surface: rgba(255, 255, 255, 0.88);
+  --app-soft: #f5f8fd;
+  --app-soft-strong: #e8eff8;
+  --app-border: rgba(136, 156, 188, 0.26);
+  --app-text: #132033;
+  --app-muted: #5f6d84;
+  --app-primary: #1d4ed8;
   --app-teal: #0f766e;
+  --app-gold: #d97706;
   --app-danger: #dc2626;
-  --app-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  --app-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  --app-shadow-soft: 0 12px 30px rgba(37, 99, 235, 0.08);
 }

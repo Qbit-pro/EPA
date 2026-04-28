@@ -42,24 +42,7 @@ exports.getExpenses = async (req,res) => {
 };
 
 exports.deleteExpense = async (req, res) => {
-    try {
-        const expense = await Expense.findOneAndDelete({
-            _id: req.params.id,
-            userId: req.user.id
-        });
-
-        if (!expense) {
-            return res.status(404).json({
-                message: "Expense not found"
-            });
-        }
-
-        res.json({
-            message: "Expense deleted"
-        });
-    } catch(error) {
-        res.status(500).json({
-            error: error.message
-        });
-    }
+    res.status(403).json({
+        message: "Deleting expenses is disabled"
+    });
 };

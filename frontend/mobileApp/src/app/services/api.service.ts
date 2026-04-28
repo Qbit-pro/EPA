@@ -74,6 +74,10 @@ export class ApiService {
     return this.get<{ user: UserProfile }>('/auth/me', token);
   }
 
+  logout(token: string): Observable<{ message: string }> {
+    return this.post<{ message: string }>('/auth/logout', {}, token);
+  }
+
   addExpense(data: ExpensePayload, token: string): Observable<{ message: string; expense: ExpenseRecord }> {
     return this.post<{ message: string; expense: ExpenseRecord }>('/expense/add', data, token);
   }

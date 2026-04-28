@@ -1,106 +1,72 @@
 <ion-header>
   <ion-toolbar class="app-toolbar">
-    <ion-title>Account</ion-title>
+    <ion-title>Welcome</ion-title>
+    <ion-button slot="end" fill="clear" size="small" type="button" (click)="manageServer()">
+      Server
+    </ion-button>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="app-page auth-page">
-  <div class="page-shell auth-shell">
-    <section class="auth-hero">
-      <div class="auth-mark">
-        <img src="assets/branding/bee-logo.png" alt="Expense Manager logo" />
-      </div>
-      <p class="eyebrow">Secure access</p>
-      <h1 class="page-title">{{ mode === 'login' ? 'Sign in' : 'Create account' }}</h1>
-      <p class="page-copy">Use email and password, or continue with Google.</p>
-    </section>
+  <div class="auth-frame">
+    <div class="auth-orb auth-orb--gold" aria-hidden="true"></div>
+    <div class="auth-orb auth-orb--blue" aria-hidden="true"></div>
 
-    <section class="panel auth-panel">
-      <ion-segment [value]="mode" (ionChange)="setMode($any($event).detail.value)">
-        <ion-segment-button value="login">
-          <ion-label>Sign in</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="signup">
-          <ion-label>Join</ion-label>
-        </ion-segment-button>
-      </ion-segment>
+    <div class="page-shell auth-shell">
+      <section class="panel auth-panel">
+        <div class="auth-panel__head auth-panel__head--centered">
+          <div class="auth-mark">
+            <img src="assets/branding/bee-logo.png" alt="Expense Manager logo" />
+          </div>
+          <p class="eyebrow">Expense Manager</p>
+          <h2>Sign in</h2>
+          <p class="page-copy">Use your email and password, or continue with Google.</p>
+        </div>
 
-      <form #authForm="ngForm" class="field-stack" (ngSubmit)="submitAuth(authForm.valid)">
-        <ion-input
-          *ngIf="mode === 'signup'"
-          class="app-input"
-          fill="outline"
-          label="Name"
-          labelPlacement="floating"
-          name="username"
-          autocomplete="name"
-          required
-          [(ngModel)]="authData.username"
-        ></ion-input>
+        <form #authForm="ngForm" class="field-stack" (ngSubmit)="submitAuth(authForm.valid)">
+          <ion-input
+            class="app-input auth-input"
+            fill="outline"
+            label="Email"
+            labelPlacement="floating"
+            name="email"
+            type="email"
+            inputmode="email"
+            autocomplete="email"
+            required
+            [(ngModel)]="authData.email"
+          ></ion-input>
 
-        <ion-input
-          class="app-input"
-          fill="outline"
-          label="Email"
-          labelPlacement="floating"
-          name="email"
-          type="email"
-          inputmode="email"
-          autocomplete="email"
-          required
-          [(ngModel)]="authData.email"
-        ></ion-input>
+          <ion-input
+            class="app-input auth-input"
+            fill="outline"
+            label="Password"
+            labelPlacement="floating"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            minlength="6"
+            [(ngModel)]="authData.password"
+          ></ion-input>
 
-        <ion-input
-          class="app-input"
-          fill="outline"
-          label="Password"
-          labelPlacement="floating"
-          name="password"
-          type="password"
-          autocomplete="current-password"
-          required
-          minlength="6"
-          [(ngModel)]="authData.password"
-        ></ion-input>
+          <ion-button class="primary-action auth-submit" expand="block" type="submit" [disabled]="isSubmitting">
+            <ion-icon slot="start" name="log-in-outline"></ion-icon>
+            Sign in
+          </ion-button>
+        </form>
 
-        <ion-input
-          *ngIf="mode === 'signup'"
-          class="app-input"
-          fill="outline"
-          label="Confirm password"
-          labelPlacement="floating"
-          name="confirmPassword"
-          type="password"
-          autocomplete="new-password"
-          required
-          minlength="6"
-          [(ngModel)]="authData.confirmPassword"
-        ></ion-input>
+        <div class="auth-divider">
+          <span></span>
+          <small>or continue with</small>
+          <span></span>
+        </div>
 
-        <ion-button class="primary-action" expand="block" type="submit" [disabled]="isSubmitting">
-          <ion-icon slot="start" [name]="mode === 'login' ? 'log-in-outline' : 'person-add-outline'"></ion-icon>
-          {{ mode === 'login' ? 'Sign in' : 'Create account' }}
+        <ion-button class="google-action auth-google" expand="block" type="button" (click)="startGoogleSignIn()">
+          <ion-icon slot="start" name="logo-google"></ion-icon>
+          Continue with Google
         </ion-button>
-      </form>
-
-      <div class="auth-divider">
-        <span></span>
-        <small>or</small>
-        <span></span>
-      </div>
-
-      <ion-button class="google-action" expand="block" type="button" (click)="startGoogleSignIn()">
-        <ion-icon slot="start" name="logo-google"></ion-icon>
-        Continue with Google
-      </ion-button>
-
-      <div class="server-note">
-        <small>{{ currentServerUrl }}</small>
-        <ion-button fill="clear" size="small" type="button" (click)="manageServer()">
-          Server
-        </ion-button>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 </ion-content>
