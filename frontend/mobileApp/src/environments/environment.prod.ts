@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://drainable-endpoint-distress.ngrok-free.dev/api',
-  androidApiUrl: 'https://drainable-endpoint-distress.ngrok-free.dev/api',
+  apiUrl: 'https://epa-rjuo.onrender.com/api',
+  androidApiUrl: 'https://epa-rjuo.onrender.com/api',
   mobileRedirectUrl: 'expensemanager://oauth'
 };
