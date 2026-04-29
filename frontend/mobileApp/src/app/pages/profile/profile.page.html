@@ -1,0 +1,119 @@
+<ion-content class="app-page">
+  <div class="page-shell profile-shell">
+    <section class="panel profile-hero">
+      <div class="profile-avatar" aria-hidden="true">
+        <span>{{ avatarInitials }}</span>
+      </div>
+
+      <div class="profile-copy">
+        <p class="eyebrow">Account</p>
+        <h1>{{ userName }}</h1>
+        <p>{{ userEmail }}</p>
+      </div>
+
+      <ion-spinner *ngIf="isLoading" name="crescent" class="profile-spinner"></ion-spinner>
+    </section>
+
+    <section class="panel profile-details">
+      <div class="detail-row">
+        <span>Username</span>
+        <strong>{{ userName }}</strong>
+      </div>
+      <div class="detail-row">
+        <span>Email</span>
+        <strong>{{ userEmail }}</strong>
+      </div>
+      <div class="detail-row">
+        <span>Last sync</span>
+        <strong>{{ lastSync }}</strong>
+      </div>
+    </section>
+
+    <section class="panel history-panel profile-history-panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">History</p>
+          <h2>Showing 5 records per page</h2>
+        </div>
+        <span class="profile-history-meta">Page {{ historyPage }} / {{ totalHistoryPages }}</span>
+      </div>
+
+      <div class="history-filter" role="group" aria-label="History filter">
+        <button
+          type="button"
+          class="history-filter__button"
+          [class.is-active]="historyFilter === 'all'"
+          (click)="setHistoryFilter('all')"
+        >
+          All
+        </button>
+        <button
+          type="button"
+          class="history-filter__button"
+          [class.is-active]="historyFilter === 'purchase'"
+          (click)="setHistoryFilter('purchase')"
+        >
+          Purchase
+        </button>
+        <button
+          type="button"
+          class="history-filter__button"
+          [class.is-active]="historyFilter === 'expense'"
+          (click)="setHistoryFilter('expense')"
+        >
+          Expense
+        </button>
+      </div>
+
+      <div *ngIf="visibleHistoryItems.length; else emptyHistory" class="history-list">
+        <div
+          class="history-row"
+          *ngFor="let item of visibleHistoryItems; trackBy: trackByHistoryId"
+        >
+          <span class="history-icon" [class.history-icon--purchase]="item.type === 'purchase'">
+            <ion-icon [name]="item.type === 'expense' ? 'receipt-outline' : 'cart-outline'"></ion-icon>
+          </span>
+          <span class="history-copy">
+            <strong>{{ item.title }}</strong>
+            <small>{{ item.subtitle }}</small>
+          </span>
+          <span class="history-date">{{ item.date | date: 'MMM d' }}</span>
+          <button
+            *ngIf="item.imageUrl"
+            type="button"
+            class="icon-action history-action"
+            (click)="openHistoryReceipt(item)"
+            aria-label="Open receipt"
+          >
+            <ion-icon name="open-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <ion-segment
+        *ngIf="totalHistoryPages > 1"
+        class="history-pages"
+        scrollable="true"
+        [value]="historyPageValue"
+        (ionChange)="setHistoryPage($any($event).detail.value)"
+      >
+        <ion-segment-button *ngFor="let page of historyPageTabs" [value]="page">
+          <ion-label>Page {{ page }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      <ng-template #emptyHistory>
+        <div class="empty-state">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <strong>No history yet</strong>
+          <p>Your latest expenses and purchases will appear here.</p>
+        </div>
+      </ng-template>
+    </section>
+
+    <ion-button class="primary-action profile-logout" expand="block" type="button" (click)="logout()">
+      <ion-icon slot="start" name="exit-outline"></ion-icon>
+      Logout
+    </ion-button>
+  </div>
+</ion-content>

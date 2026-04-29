@@ -1,0 +1,99 @@
+<ion-content class="app-page auth-page">
+  <div class="auth-frame">
+    <div class="auth-orb auth-orb--gold" aria-hidden="true"></div>
+    <div class="auth-orb auth-orb--blue" aria-hidden="true"></div>
+
+    <div class="page-shell auth-shell">
+      <section class="panel auth-panel">
+        <div class="auth-panel__head auth-panel__head--centered">
+          <div class="auth-mark">
+            <img src="assets/icon/favicon.png" alt="CostTrack logo" />
+          </div>
+          <p class="eyebrow">CostTrack</p>
+          <h2>Sign in</h2>
+          <p class="page-copy">Use your email and password, or continue with Google.</p>
+        </div>
+
+        <form #authForm="ngForm" class="field-stack" (ngSubmit)="submitAuth(authForm.valid)">
+          <ion-input
+            class="app-input auth-input"
+            fill="outline"
+            label="Email"
+            labelPlacement="floating"
+            name="email"
+            type="email"
+            inputmode="email"
+            autocomplete="email"
+            required
+            [(ngModel)]="authData.email"
+          ></ion-input>
+
+          <ion-input
+            class="app-input auth-input"
+            fill="outline"
+            label="Password"
+            labelPlacement="floating"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            minlength="6"
+            [(ngModel)]="authData.password"
+          ></ion-input>
+
+          <ion-button class="primary-action auth-submit" expand="block" type="submit" [disabled]="isSubmitting">
+            <ion-icon slot="start" name="log-in-outline"></ion-icon>
+            Sign in
+          </ion-button>
+        </form>
+
+        <div class="auth-divider">
+          <span></span>
+          <small>or continue with</small>
+          <span></span>
+        </div>
+
+        <ion-button class="google-action auth-google" expand="block" type="button" (click)="startGoogleSignIn()">
+          <ion-icon slot="start" name="person-circle-outline"></ion-icon>
+          Continue with Google
+        </ion-button>
+      </section>
+
+      <details class="server-panel panel">
+        <summary>
+          <span>Test server</span>
+          <small>{{ currentApiBaseUrl }}</small>
+        </summary>
+
+        <div class="server-panel__body">
+          <ion-input
+            class="app-input server-input"
+            fill="outline"
+            label="ngrok URL"
+            labelPlacement="floating"
+            name="apiBaseUrl"
+            type="url"
+            inputmode="url"
+            autocomplete="url"
+            [(ngModel)]="apiBaseUrl"
+            [ngModelOptions]="{ standalone: true }"
+          ></ion-input>
+
+          <div class="server-actions">
+            <ion-button class="compact-action" type="button" (click)="saveServerUrl()">
+              <ion-icon slot="start" name="link-outline"></ion-icon>
+              Save
+            </ion-button>
+            <ion-button class="compact-action compact-action--secondary" type="button" (click)="testServerUrl()" [disabled]="isTestingServer">
+              <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+              Test
+            </ion-button>
+            <ion-button class="compact-action compact-action--secondary" type="button" (click)="resetServerUrl()">
+              Reset
+            </ion-button>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</ion-content>

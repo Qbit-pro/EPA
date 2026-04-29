@@ -1,0 +1,192 @@
+<ion-content class="app-page">
+  <div class="page-shell form-shell">
+    <section>
+      <p class="eyebrow">Purchase record</p>
+      <h1 class="page-title">Add purchase</h1>
+    </section>
+
+    <form #purchaseForm="ngForm" class="panel record-form" (ngSubmit)="submitPurchase(purchaseForm.valid)">
+      <div class="field-stack">
+        <ion-input
+          class="app-input"
+          fill="outline"
+          label="Title"
+          labelPlacement="floating"
+          name="title"
+          required
+          [(ngModel)]="purchaseData.title"
+        ></ion-input>
+
+        <ion-textarea
+          class="app-input"
+          fill="outline"
+          label="Description"
+          labelPlacement="floating"
+          name="description"
+          rows="4"
+          [(ngModel)]="purchaseData.description"
+        ></ion-textarea>
+      </div>
+
+      <div class="date-card panel">
+        <button type="button" class="date-card__button" (click)="openDatePicker()" aria-label="Choose purchase date">
+          <span class="date-card__icon">
+            <ion-icon name="calendar-outline"></ion-icon>
+          </span>
+          <span class="date-card__copy">
+            <small>Purchase date</small>
+            <strong>{{ formattedSelectedDate }}</strong>
+            <em>Tap to open the calendar</em>
+          </span>
+          <ion-icon class="date-card__chevron" name="chevron-forward-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="paid-by-segment" role="group" aria-label="Paid by">
+        <button
+          type="button"
+          class="paid-choice paid-choice--company"
+          [class.is-selected]="purchaseData.paidBy === 'company'"
+          [attr.aria-pressed]="purchaseData.paidBy === 'company'"
+          (click)="setPaidBy('company')"
+        >
+          <ion-icon name="card-outline"></ion-icon>
+          <span>Company</span>
+        </button>
+        <button
+          type="button"
+          class="paid-choice paid-choice--self"
+          [class.is-selected]="purchaseData.paidBy === 'self'"
+          [attr.aria-pressed]="purchaseData.paidBy === 'self'"
+          (click)="setPaidBy('self')"
+        >
+          <ion-icon name="cash-outline"></ion-icon>
+          <span>Self</span>
+        </button>
+      </div>
+
+      <div class="receipt-panel">
+        <div class="receipt-preview" [class.has-image]="hasImagePreview">
+          <img *ngIf="hasImagePreview" [src]="imagePreview" alt="Purchase receipt preview" />
+          <ion-icon *ngIf="!hasImagePreview" name="document-text-outline"></ion-icon>
+        </div>
+        <div class="receipt-details">
+          <strong>{{ receiptName }}</strong>
+          <span>{{ imageFile ? 'Ready to upload' : 'Purchase file' }}</span>
+        </div>
+      </div>
+
+      <div class="button-grid web-file-grid">
+        <ion-button class="secondary-action camera-action" expand="block" type="button" (click)="takePhoto()">
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          Camera
+        </ion-button>
+        <ion-button class="secondary-action gallery-action" expand="block" type="button" (click)="openFilePicker()">
+          <ion-icon slot="start" name="document-text-outline"></ion-icon>
+          Files
+        </ion-button>
+      </div>
+      <input
+        #receiptFileInput
+        class="hidden-file-input"
+        type="file"
+        (change)="onFileSelected($event)"
+      />
+
+      <ion-modal [isOpen]="isDatePickerOpen" (didDismiss)="closeDatePicker()">
+        <ng-template>
+          <ion-header translucent="true">
+            <ion-toolbar class="app-toolbar">
+              <ion-title>Choose a date</ion-title>
+              <ion-buttons slot="end">
+                <ion-button type="button" (click)="closeDatePicker()">Done</ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+
+          <ion-content class="app-page calendar-modal-content">
+            <div class="calendar-modal-shell">
+              <section class="calendar-hero">
+                <p class="eyebrow">Selected day</p>
+                <h2>{{ formattedSelectedDate }}</h2>
+              </section>
+
+              <section class="calendar-panel panel">
+                <ion-datetime
+                  class="calendar-picker"
+                  presentation="date"
+                  preferWheel="false"
+                  firstDayOfWeek="1"
+                  [max]="maxSelectableDate"
+                  [value]="purchaseData.date"
+                  (ionChange)="onDateSelected($event)"
+                ></ion-datetime>
+              </section>
+            </div>
+          </ion-content>
+        </ng-template>
+      </ion-modal>
+
+      <ion-modal [isOpen]="isWebCameraOpen" (didDismiss)="closeWebCamera()">
+        <ng-template>
+          <ion-header translucent="true">
+            <ion-toolbar class="app-toolbar">
+              <ion-title>Camera</ion-title>
+              <ion-buttons slot="end">
+                <ion-button type="button" (click)="closeWebCamera()">Close</ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+
+          <ion-content class="app-page">
+            <div class="web-camera-shell">
+              <div class="web-camera-frame panel">
+                <video #webCameraVideo *ngIf="!webCameraError" autoplay muted playsinline class="web-camera-video"></video>
+                <div *ngIf="isWebCameraStarting" class="web-camera-status">
+                  <ion-spinner name="crescent"></ion-spinner>
+                  <span>Opening camera...</span>
+                </div>
+                <div *ngIf="webCameraError" class="web-camera-status web-camera-status--error">
+                  <ion-icon name="warning-outline"></ion-icon>
+                  <span>{{ webCameraError }}</span>
+                </div>
+              </div>
+              <canvas #webCameraCanvas hidden></canvas>
+            </div>
+          </ion-content>
+
+          <ion-footer>
+            <ion-toolbar class="app-toolbar">
+              <div class="web-camera-actions">
+                <ion-button fill="clear" color="medium" type="button" (click)="closeWebCamera()">
+                  Cancel
+                </ion-button>
+                <ion-button type="button" [disabled]="isWebCameraStarting || !!webCameraError" (click)="captureWebCameraFrame()">
+                  Capture
+                </ion-button>
+              </div>
+            </ion-toolbar>
+          </ion-footer>
+        </ng-template>
+      </ion-modal>
+
+      <ion-button
+        *ngIf="imageFile"
+        class="secondary-action"
+        fill="clear"
+        color="medium"
+        expand="block"
+        type="button"
+        (click)="clearReceipt()"
+      >
+        Clear receipt
+      </ion-button>
+
+      <ion-button class="primary-action" expand="block" type="submit" [disabled]="isSubmitting">
+        <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+        Save purchase
+      </ion-button>
+    </form>
+
+  </div>
+</ion-content>

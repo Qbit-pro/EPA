@@ -1,0 +1,14 @@
+<ion-app>
+  <div
+    *ngIf="showSplash"
+    class="splash-screen"
+    [class.splash-screen--leaving]="splashLeaving"
+    aria-hidden="true"
+  >
+    <div class="splash-mark">
+      <img src="assets/icon/favicon.png" alt="CostTrack logo" />
+    </div>
+  </div>
+
+  <ion-router-outlet></ion-router-outlet>
+</ion-app>

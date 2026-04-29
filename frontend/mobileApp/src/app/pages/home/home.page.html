@@ -1,0 +1,57 @@
+<ion-content class="app-page">
+  <div class="page-shell home-shell">
+    <section class="hero-panel">
+      <div class="hero-copy">
+        <p class="eyebrow">Dashboard</p>
+        <h1>{{ isLoggedIn ? 'Hi, ' + userName : 'CostTrack' }}</h1>
+        <p>{{ isLoggedIn ? userEmail : 'Sign in to sync your records and uploads.' }}</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="sync-button" (click)="refreshSummary()" aria-label="Refresh summary">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </button>
+        <ion-spinner *ngIf="isLoadingSummary" name="crescent" class="hero-spinner"></ion-spinner>
+        <span class="sync-time">{{ lastSync }}</span>
+      </div>
+    </section>
+
+    <section class="summary-grid" aria-label="Record summary">
+      <div class="summary-item panel">
+        <span>Total</span>
+        <strong>{{ totalRecords }}</strong>
+      </div>
+      <div class="summary-item panel">
+        <span>Expenses</span>
+        <strong>{{ expenseCount }}</strong>
+      </div>
+      <div class="summary-item panel">
+        <span>Purchases</span>
+        <strong>{{ purchaseCount }}</strong>
+      </div>
+    </section>
+
+    <section class="action-grid" aria-label="Primary actions">
+      <button type="button" class="action-card panel expense-action" (click)="goToExpense()">
+        <span class="action-icon">
+          <ion-icon name="receipt-outline"></ion-icon>
+        </span>
+        <span>
+          <strong>Expense</strong>
+          <small>Spend log</small>
+        </span>
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </button>
+
+      <button type="button" class="action-card panel purchase-action" (click)="goToPurchase()">
+        <span class="action-icon">
+          <ion-icon name="cart-outline"></ion-icon>
+        </span>
+        <span>
+          <strong>Purchase</strong>
+          <small>Paid-by tracking</small>
+        </span>
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </button>
+    </section>
+  </div>
+</ion-content>

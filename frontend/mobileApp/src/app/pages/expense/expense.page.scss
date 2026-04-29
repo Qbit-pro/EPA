@@ -1,0 +1,14 @@
+.camera-action {
+  --background: var(--app-primary);
+  --background-hover: #185ec4;
+  --background-activated: #154f9f;
+  --border-width: 0;
+  --color: #ffffff;
+}
+
+.gallery-action {
+  --background: #ffffff;
+  --background-hover: var(--app-soft);
+  --background-activated: var(--app-soft-strong);
+  --color: var(--app-text);
+}
