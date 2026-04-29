@@ -1,23 +1,13 @@
-# ===========================
-# Node / npm
-# ===========================
 node_modules/
 **/node_modules/
 npm-debug.log*
 yarn-error.log
 yarn-debug.log*
 **/.npm-cache/
-
-# ===========================
-# Environment / Secrets
-# ===========================
 .env
 .env.local
 .env.*.local
 
-# ===========================
-# Build outputs
-# ===========================
 /dist
 /out-tsc
 /bazel-out
@@ -31,10 +21,6 @@ yarn-debug.log*
 **/android/app/build/
 /tmp
 /.sourcemaps
-
-# ===========================
-# Angular / Ionic
-# ===========================
 /.ionic
 /.angular
 /.angular/cache
@@ -44,9 +30,7 @@ yarn-debug.log*
 /plugins
 /coverage
 
-# ===========================
-# IDEs & Editors
-# ===========================
+
 .idea/
 .project
 .classpath
@@ -62,17 +46,13 @@ yarn-debug.log*
 !.vscode/extensions.json
 .history/
 
-# ===========================
-# OS files
-# ===========================
+
 .DS_Store
 Thumbs.db
 $RECYCLE.BIN/
 *~
 
-# ===========================
-# Logs & Temps
-# ===========================
+
 *.log
 *.out
 *.err
@@ -84,15 +64,11 @@ log.txt
 libpeerconnection.log
 testem.log
 
-# ===========================
-# Misc
-# ===========================
+
 .sass-cache/
 UserInterfaceState.xcuserstate
 
-# ===========================
-# Backend – unwanted test files
-# ===========================
+
 backend/check.jpeg
 *.apk
 emulator-*.png
